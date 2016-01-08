@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Adif Cluster DXCC</title>
+  <link rel="stylesheet" href="css/cluster.css" type="text/css"/>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/jquery.timer.js"></script>
+</head>
+<body>
+ 
+<!-- <button id="go">Add</button> -->
+<div>
+	<div class="title">
+		<span class="call">Call</span>
+		<span class="freq">Freq (MHz)</span>
+		<span class="time">Time</span>
+		<span class="de">DE</span>
+		<span class="comment">Comment</span>
+		<span class="dxcc">DXCC</span>
+	</div>
+</div>
+<div id="cluster">
+</div>
+ 
+<script src="cfg/config.js"></script>
+
+<script>
+var spots;
+var timer;
+var restartTimer;
+var worked;
+ajaxGet("worked.json",{},function(w) {
+	worked = w;
+	ajaxGet("spots.json",{},function(data) {
+		handleSpots(data);
+		timer = $.timer(5000,function() {
+			ajaxGet("spots.json",{},function(data) {
+				handleSpots(data);
+			});
+		});
+	});
+	// Reload every 30 min
+	restartTimer = $.timer(30*60*1000,function() {
+		window.location.reload(1);
+	});
+});
+
+
+function handleSpots(data) {
+	for(var i=0;i<data.length;i++) {
+		if(!$('#' + data[i].id).length) {
+			addSpot(data[i]);
+		}
+	}
+}
+
+function addSpot(data) {
+  var status = show(data);
+  if(!status) {
+    return;
+  }
+  var klass = "worked";
+  if(status == 2) {
+	klass = "newband";
+  }
+  if(status == 3) {
+	klass = "newdxcc";
+  }
+  var dxcc = genWorked(data);
+  var html = 
+	"<div id=\"" + data.id + "\" class=\"first " + klass + "\">" +
+		"<span class=\"call\"><a target=\"adif-web-sdr\" href=\"" + websdr +"?tune=" + (data.freq*1000) + "&band=" + data.band + "\">"    + data.call    + "</a></span>" +
+		"<span class=\"freq\">"    + data.freq    + "</span>" +
+		"<span class=\"time\">"    + data.time    + "</span>" +
+		"<span class=\"de\">"      + data.de      + "</span>" +
+		"<span class=\"comment\">" + (data.comment.length?data.comment:"&nbsp;") + "</span>" +
+		"<span class=\"dxcc\">" + dxcc + "</span>" +
+	"</div>";
+  $( "#cluster" ).prepend(html);
+  // Fade in :-)
+  $( "#" + data.id ).animate({
+    height: "40px"
+  }, 500, null, function() {
+	  $( "#" + data.id ).animate({
+	    opacity: 1,
+	  }, 500, null, function() {
+		$("#" + data.id).addClass("spot").removeClass("first");
+	  } );
+  } );
+}
+
+function show(data) {
+	// If not defined (not available?)
+	if(available_bands[data.band] === undefined) {
+		return 0;
+        }
+	// If not available
+	if(!available_bands[data.band]) {
+		return 0;
+        }
+	if(worked[data.prefix] === undefined) {
+		return 3;
+	}
+	if(worked[data.prefix][data.band] === undefined) {
+		return 2;
+	}
+	if(worked[data.prefix][data.band]['qsl'] !== undefined) {
+		return 0;
+	}
+	if(worked[data.prefix][data.band]['qsl_lotw'] !== undefined) {
+		return 0;
+	}
+	if(worked[data.prefix][data.band]['qsl_eqsl'] !== undefined) {
+		return 0;
+	}
+	return 1;
+}
+
+function genWorked(data) {
+	var r = data.name + "[" + data.prefix + "]";
+	if(worked[data.prefix] === undefined) {
+		return r + " - All new";
+	}
+	if(worked[data.prefix][data.band] === undefined) {
+		return r + " - New band";
+	}
+	r += " - Worked";
+	if(worked[data.prefix][data.band]['qsl'] !== undefined) {
+		r += ", QSL cfm"
+	}
+	if(worked[data.prefix][data.band]['qsl_lotw'] !== undefined) {
+		r += ", LoTW cfm"
+	}
+	if(worked[data.prefix][data.band]['qsl_eqsl'] !== undefined) {
+		r += ", eQSL cfm"
+	}
+	return r;
+}
+</script>
+<script src="cfg/show.js"></script>
+ 
+</body>
+</html>

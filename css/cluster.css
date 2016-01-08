@@ -1,0 +1,56 @@
+div.newdxcc {
+  background-color: #fca;
+  border: 1px solid red;
+}
+div.newband {
+  background-color: #bcf;
+  border: 1px solid blue;
+}
+div.worked {
+  background-color: #bca;
+  border: 1px solid green;
+}
+div.first {
+  width: 100%;
+  height: 0px;
+  color: #000;
+  opacity: 0;
+}
+div.spot {
+  olor: #000;
+  width: 100%;
+  height: 40px;
+  opacity: 1;
+}
+div.title {
+  background-color: #bcf;
+  color: #000;
+  width: 100%;
+  height: 20px;
+  border: 1px solid green;
+  opacity: 1;
+}
+.call {
+  float: left;
+  width: 175px;
+}
+.freq {
+  float: left;
+  width: 100px;
+}
+.time {
+  float: left;
+  width: 100px;
+}
+.de {
+  float: left;
+  width: 175px;
+}
+.comment {
+  float: left;
+  width: 275px;
+}
+.dxcc {
+  float: left;
+  /* width: 375px; */
+}
